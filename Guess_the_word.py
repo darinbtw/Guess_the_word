@@ -7,7 +7,7 @@ class GuessTheWordApp:
         self.root = root
         self.root.title("Угадай слово")
         
-        self.questions, self.answers, self.descriptions = self.read_questions('questions.txt')
+        self.questions, self.answers, _ = self.read_questions('questions.txt')  # Убираем описания
         self.used_indices = []
         
         self.question_label = tk.Label(root, text="", wraplength=300)
@@ -51,9 +51,8 @@ class GuessTheWordApp:
             self.used_indices.append(index)
             self.current_question = self.questions[index]
             self.current_answer = self.answers[index]
-            self.current_description = self.descriptions[index]
             shuffled_word = self.shuffle_word(self.current_answer)
-            self.question_label.config(text=self.current_description + "\n\n" + shuffled_word)
+            self.question_label.config(text=self.current_question + "\n\n" + shuffled_word)  # Показываем только вопрос
         else:
             messagebox.showinfo("Игра окончена", "Все вопросы закончились!")
             self.root.quit()
