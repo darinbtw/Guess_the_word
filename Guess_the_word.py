@@ -1,46 +1,71 @@
-import openai
+import tkinter as tk
+from tkinter import messagebox
 import random
 
-# Установка ключа API
-openai.api_key = 'https://api.openai.com/v1/completions'
+class GuessTheWordApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Угадай слово")
+        
+        self.questions, self.answers, self.descriptions = self.read_questions('questions.txt')
+        self.used_indices = []
+        
+        self.question_label = tk.Label(root, text="", wraplength=300)
+        self.question_label.pack(pady=10)
+        
+        self.answer_entry = tk.Entry(root)
+        self.answer_entry.pack(pady=5)
+        
+        self.check_button = tk.Button(root, text="Проверить", command=self.check_answer)
+        self.check_button.pack(pady=5)
+        
+        self.next_question_button = tk.Button(root, text="Следующий вопрос", command=self.next_question)
+        self.next_question_button.pack(pady=5)
+        
+        self.quit_button = tk.Button(root, text="Выйти", command=root.quit)
+        self.quit_button.pack(pady=5)
+        
+        self.next_question()
 
-# Функция для генерации слова с помощью OpenAI API
-def generate_word():
-    prompt = "Сгенерируйте слово для игры про угадывание слов на русском языке с описанием этого загаданного слова:"
-    response = openai.Completion.create(
-        engine="text-davinci-003",  # Можно использовать другие модели, если нужно
-        prompt=prompt,
-        temperature=0.7,  # Регулирует разнообразие ответа
-        max_tokens=50,  # Максимальное количество токенов в ответе
-        n=1,  # Количество ответов, которые нужно сгенерировать
-        stop=None,  # Условие остановки генерации
-        timeout=None,  # Таймаут запроса
-    )
-    return response.choices[0].text.strip()
+    def read_questions(self, filename):
+        questions = []
+        answers = []
+        descriptions = []
+        with open(filename, 'r', encoding='utf-8') as file:
+            for line in file:
+                question, answer, description = line.strip().split('|')
+                questions.append(question)
+                answers.append(answer)
+                descriptions.append(description)
+        return questions, answers, descriptions
 
-# Функция для перемешивания букв в слове
-def shuffle_word(word):
-    word_list = list(word)
-    random.shuffle(word_list)
-    return ''.join(word_list)
+    def shuffle_word(self, word):
+        word_list = list(word)
+        random.shuffle(word_list)
+        return ''.join(word_list)
 
-# Функция для проверки правильности ответа
-def check_guess(actual_word, guessed_word):
-    return actual_word == guessed_word
+    def next_question(self):
+        self.answer_entry.delete(0, tk.END)
+        if self.questions:
+            index = random.choice([i for i in range(len(self.questions)) if i not in self.used_indices])
+            self.used_indices.append(index)
+            self.current_question = self.questions[index]
+            self.current_answer = self.answers[index]
+            self.current_description = self.descriptions[index]
+            shuffled_word = self.shuffle_word(self.current_answer)
+            self.question_label.config(text=self.current_description + "\n\n" + shuffled_word)
+        else:
+            messagebox.showinfo("Игра окончена", "Все вопросы закончились!")
+            self.root.quit()
 
-# Главная функция игры
-def play_game():
-    print("Добро пожаловать в игру 'Угадай слово'!")
-    print("Я сгенерирую слово, а вы должны будете его угадать.")
-    print("Вот ваше первое слово:")
-    generated_word = generate_word()
-    shuffled_word = shuffle_word(generated_word)
-    print("Загаданное слово:", shuffled_word)
-    guess = input("Ваш ответ: ").strip().lower()
-    if check_guess(generated_word, guess):
-        print("Правильно! Вы угадали слово.")
-    else:
-        print("Неправильно. Правильный ответ:", generated_word)
+    def check_answer(self):
+        guess = self.answer_entry.get().strip().lower()
+        if guess == self.current_answer.lower():
+            messagebox.showinfo("Правильно", "Вы угадали слово!")
+            self.next_question()
+        else:
+            messagebox.showerror("Неправильно", f"Неправильный ответ. Правильный ответ: {self.current_answer}")
 
-# Запуск игры
-play_game()
+root = tk.Tk()
+app = GuessTheWordApp(root)
+root.mainloop()
