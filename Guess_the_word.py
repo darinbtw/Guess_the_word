@@ -33,10 +33,15 @@ class GuessTheWordApp:
         descriptions = []
         with open(filename, 'r', encoding='utf-8') as file:
             for line in file:
-                question, answer, description = line.strip().split('|')
+                parts = line.strip().split('|')
+                if len(parts) == 3:
+                    question, answer, description = parts
+                    descriptions.append(description)
+                else:
+                    question, answer = parts
+                    descriptions.append("")  # Добавляем пустое описание
                 questions.append(question)
                 answers.append(answer)
-                descriptions.append(description)
         return questions, answers, descriptions
 
     def shuffle_word(self, word):
